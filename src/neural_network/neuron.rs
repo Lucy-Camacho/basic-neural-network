@@ -1,37 +1,32 @@
 pub struct Neuron {
     weights: Vec<f32>,
     bias: f32,
-    error: f32,
-    weighted_sum: f32,
+    errors: Vec<f32>,
+    weighted_sums: Vec<f32>,
 }
 
 impl Neuron {
-    fn relu(&self, z: f32) -> f32 {
-        z.max(0.0)
+    fn relu(&self, z: &[f32]) -> Vec<f32> {
+        let mut activated: Vec<f32> = vec![];
+        for sum in z {
+            activated.push(sum.max(0.0));
+        }
+        return activated;
     }
 
-    fn softmax(&self, logits: &[f32]) -> Vec<f32> {
-        let max = logits.iter().copied().fold(f32::NEG_INFINITY, f32::max);
-        let mut exponents = vec![];
-        let mut exp_sum: f32 = 0.0;
-
-        for logit in logits {
-            let exponent = (logit - max).exp(); //Prevents overflow by subtracting max logit from the current one.
-            exponents.push(exponent);
-            exp_sum += exponent;
+    fn preactivation(&mut self, inputs: &[Vec<f32>]) {
+        self.weighted_sums.clear();
+        for column in inputs {
+            let mut sum = self.bias;
+            for (weight, input) in self.weights.iter().zip(column) {
+                sum += weight * input;
+            }
+            self.weighted_sums.push(sum);
         }
-
-        for exp in &mut exponents {
-            *exp /= exp_sum;
-        }
-        return exponents;
     }
 
-    fn preactivation(&self, inputs: Vec<f32>) -> f32 {
-        let mut sum = self.bias;
-        for (weight, input) in self.weights.iter().zip(inputs) {
-            sum += weight * input;
-        }
-        return sum;
+    pub fn activation(&mut self, inputs: &[Vec<f32>]) -> Vec<f32> {
+        self.preactivation(inputs);
+        self.relu(&self.weighted_sums)
     }
 }
