@@ -1,7 +1,10 @@
-use super::neuron;
+use crate::utils::transpose;
 
+use super::neuron;
 pub struct Layer {
-    neurons: Vec<neuron::Neuron>
+    neurons: Vec<neuron::Neuron>,
+    pub neuron_results: Vec<Vec<f32>>,
+    pub error_delta: Vec<Vec<f32>>
 }
 
 impl Layer {
@@ -21,4 +24,21 @@ impl Layer {
         }
         return exponents;
     }
+
+    pub fn run_layer(&mut self, inputs:&[Vec<f32>], softmax:bool) {
+        let mut results: Vec<Vec<f32>> = vec![];
+        for neuron in &mut self.neurons {
+            let z = neuron.preactivate(inputs);
+            if !softmax { results.push(neuron.relu(&z)) }
+            else { results.push(z); }
+        }
+        
+        let mut  temp_results = transpose(&results);
+        if softmax {
+            for sample_logits in &mut temp_results {
+                *sample_logits = self.softmax(sample_logits);
+            }
+        }
+        self.neuron_results = temp_results;
+    } 
 }

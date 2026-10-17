@@ -1,12 +1,10 @@
 pub struct Neuron {
     weights: Vec<f32>,
-    bias: f32,
-    errors: Vec<f32>,
-    weighted_sums: Vec<f32>,
+    bias: f32
 }
 
 impl Neuron {
-    fn relu(&self, z: &[f32]) -> Vec<f32> {
+    pub fn relu(&self, z: &[f32]) -> Vec<f32> {
         let mut activated: Vec<f32> = vec![];
         for sum in z {
             activated.push(sum.max(0.0));
@@ -14,19 +12,15 @@ impl Neuron {
         return activated;
     }
 
-    fn preactivation(&mut self, inputs: &[Vec<f32>]) {
-        self.weighted_sums.clear();
+    pub fn preactivate(&mut self, inputs: &[Vec<f32>]) -> Vec<f32> {
+        let mut product_sum: Vec<f32> = vec![];
         for column in inputs {
             let mut sum = self.bias;
             for (weight, input) in self.weights.iter().zip(column) {
                 sum += weight * input;
             }
-            self.weighted_sums.push(sum);
+            product_sum.push(sum);
         }
-    }
-
-    pub fn activation(&mut self, inputs: &[Vec<f32>]) -> Vec<f32> {
-        self.preactivation(inputs);
-        self.relu(&self.weighted_sums)
+        return product_sum;
     }
 }
